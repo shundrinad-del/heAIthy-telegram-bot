@@ -3,44 +3,69 @@
  */
 
 // Подключаем библиотеку Telegraf для создания Telegram бота
-// В реальном проекте нужно установить через npm: npm install telegraf dotenv
 const { Telegraf } = require('telegraf');
 require('dotenv').config();
 
-// Импортируем обработчики
-const path = require('path');
-
-const { 
-  handleStart, 
-  handleHelp, 
-  handleSettings, 
-  handleStats 
-} = require(path.join(__dirname, 'src', 'handlers', 'commandHandlers'));
-
-const { 
-  startMorningSurvey, 
-  startEveningSurvey, 
-  startWeeklySurvey, 
-  handleSurveyAnswer 
-} = require(path.join(__dirname, 'src', 'handlers', 'surveyHandlers'));
+// Простое хранилище данных (в реальном приложении использовать базу данных)
+const users = {};
 
 // Создаем экземпляр бота с токеном из .env файла
 // В .env файле должна быть строка BOT_TOKEN=ваш_токен
 const bot = new Telegraf(process.env.BOT_TOKEN || '8238042855:AAEcWTiF1AujYFiwaAsJGkHdqzr3Up8kgzM');
 
 // Обработчики команд
-bot.start(handleStart);
-bot.help(handleHelp);
-bot.command('settings', handleSettings);
-bot.command('stats', handleStats);
+bot.start(async (ctx) => {
+  const userId = ctx.from.id;
+  const firstName = ctx.from.first_name || '';
+  
+  // Сохраняем пользователя
+  users[userId] = {
+    id: userId,
+    firstName: firstName,
+    registeredAt: new Date().toISOString()
+  };
+  
+  await ctx.reply(
+    `Привет, ${firstName}! 👋\n\n` +
+    'Я бот, который поможет тебе отслеживать и улучшать уровень энергии и продуктивности.\n\n' +
+    'Доступные команды:\n' +
+    '/start - Начать работу с ботом\n' +
+    '/help - Показать справку\n' +
+    '/morning - Утренний опрос\n' +
+    '/evening - Вечерний опрос'
+  );
+});
 
-// Команды для опросов
-bot.command('morning', startMorningSurvey);
-bot.command('evening', startEveningSurvey);
-bot.command('weekly', startWeeklySurvey);
+bot.help(async (ctx) => {
+  await ctx.reply(
+    'Доступные команды:\n\n' +
+    '/start - Начать работу с ботом\n' +
+    '/morning - Утренний опрос\n' +
+    '/evening - Вечерний опрос\n' +
+    '/help - Показать справку'
+  );
+});
 
-// Обработка текстовых сообщений (ответы на вопросы опросов)
-bot.on('text', handleSurveyAnswer);
+bot.command('morning', async (ctx) => {
+  await ctx.reply('Утренний опрос будет доступен в полной версии бота!');
+});
+
+bot.command('evening', async (ctx) => {
+  await ctx.reply('Вечерний опрос будет доступен в полной версии бота!');
+});
+
+bot.command('settings', async (ctx) => {
+  await ctx.reply('Настройки будут доступны в полной версии бота!');
+});
+
+bot.command('stats', async (ctx) => {
+  await ctx.reply('Статистика будет доступна в полной версии бота!');
+});
+
+// Обработка текстовых сообщений
+bot.on('text', async (ctx) => {
+  await ctx.reply('Я понимаю только команды. Используйте /help для просмотра доступных команд.');
+});
 
 // Обработка ошибок
 bot.catch((err, ctx) => {
@@ -71,10 +96,7 @@ if (process.env.NODE_ENV === 'production') {
   app.use(express.json());
   
   // Обрабатываем запросы от Telegram
-  app.post(`/bot${process.env.BOT_TOKEN}`, (req, res) => {
-    bot.handleUpdate(req.body, res);
-    res.sendStatus(200);
-  });
+  app.use(bot.webhookCallback(`/bot${process.env.BOT_TOKEN}`));
   
   // Простой эндпоинт для проверки работоспособности
   app.get('/', (req, res) => {
