@@ -79,21 +79,21 @@ const URL = process.env.URL || 'https://heaithy-telegram-bot.onrender.com';
 
 // Запускаем бота
 if (process.env.NODE_ENV === 'production') {
-  // Режим webhook для продакшена
-  bot.telegram.setWebhook(`${URL}/bot${process.env.BOT_TOKEN}`)
-    .then(() => {
-      console.log('Webhook установлен!');
-    })
-    .catch(err => {
-      console.error('Ошибка при установке webhook:', err);
-    });
-  
-  // Запускаем Express сервер для обработки webhook
+  // Подключаем express
   const express = require('express');
   const app = express();
   
   // Парсим тело запроса как JSON
   app.use(express.json());
+  
+  // Настраиваем webhook
+  bot.telegram.setWebhook(`${URL}/bot${process.env.BOT_TOKEN}`)
+    .then(() => {
+      console.log('Webhook установлен успешно!');
+    })
+    .catch(err => {
+      console.error('Ошибка при установке webhook:', err);
+    });
   
   // Обрабатываем запросы от Telegram
   app.use(bot.webhookCallback(`/bot${process.env.BOT_TOKEN}`));
@@ -109,9 +109,10 @@ if (process.env.NODE_ENV === 'production') {
   });
 } else {
   // Режим polling для локальной разработки
+  console.log('Запускаем бота в режиме polling...');
   bot.launch()
     .then(() => {
-      console.log('Бот запущен в режиме polling!');
+      console.log('Бот успешно запущен!');
     })
     .catch((err) => {
       console.error('Ошибка при запуске бота:', err);
