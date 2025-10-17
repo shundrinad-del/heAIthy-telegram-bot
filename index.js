@@ -19,7 +19,7 @@ const {
   handleUserInfoInput,
   showMainMenu,
   nutritionSessions
-} = require('./src/handlers/nutritionHandlers');
+} = require(__dirname + '/src/handlers/nutritionHandlers');
 
 // Простое хранилище данных (в реальном приложении использовать базу данных)
 const users = {};
