@@ -2,7 +2,7 @@
  * Обработчики для функций питания и расчета КБЖУ
  */
 
-const { products, mealTemplates, nutritionGoals } = require('../../data/nutrition');
+const { products, mealTemplates, nutritionGoals } = require(__dirname + '/../../data/nutrition');
 const { Markup } = require('telegraf');
 
 // Хранилище текущих сессий планирования питания
